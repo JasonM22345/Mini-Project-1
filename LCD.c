@@ -1434,7 +1434,21 @@ void BSP_LCD_PlotIncrement(void){
 //  				value		16-bit number in unsigned decimal format
 // outputs: none
 void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int value){
-  // Your Code Here
+    if (device == 0) { // Top screen (rows 0 to 11)
+        if (line > 11 || col > 20) return; // Ensure valid line/col for top screen
+        BSP_LCD_SetCursor(col, line);
+        BSP_LCD_DrawString(col, line, string, ST7735_WHITE); // Draw the string
+        char valueString[12];
+        sprintf(valueString, "%u", value); // Convert value to string (unsigned)
+        BSP_LCD_DrawString(col + strlen(string), line, valueString, ST7735_WHITE);
+    } else if (device == 1) { // Bottom bar (row 12 only)
+        if (line != 0 || col > 20) return; // Bottom bar only allows line 0
+        BSP_LCD_SetCursor(col, 12); // Always draw on row 12 for bottom bar
+        BSP_LCD_DrawString(col, 12, string, ST7735_WHITE); // Draw the string
+        char valueString[12];
+        sprintf(valueString, "%u", value); // Convert value to string (unsigned)
+        BSP_LCD_DrawString(col + strlen(string), 12, valueString, ST7735_WHITE);
+    }
 }
 
 //------------BSP_LCD_DrawCrosshaire-------------------
@@ -1444,6 +1458,19 @@ void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int 
 //					color		specifies the color of the crosshair
 // outputs: none
 void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
-  // Your Code Here
+    // Ensure coordinates are within the bounds of the screen
+    if (x < 0 || x >= ST7735_TFTWIDTH || y < 0 || y >= ST7735_TFTHEIGHT) return;
+
+    // Ensure the crosshair stays within the top logical display (lines 0-11)
+    if (y / 10 > 11) return;
+
+    // Define the size of the crosshair (half the length of each line)
+    int16_t crossSize = 5;
+
+    // Draw the horizontal line of the crosshair, centered at (x, y)
+    BSP_LCD_DrawFastHLine(x - crossSize, y, crossSize * 2 + 1, color);
+
+    // Draw the vertical line of the crosshair, centered at (x, y)
+    BSP_LCD_DrawFastVLine(x, y - crossSize, crossSize * 2 + 1, color);
 }
 

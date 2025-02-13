@@ -25,6 +25,7 @@ uint8_t select;  // joystick push
 #define TEST_PERIOD 800000  // Defined by user
 #define PERIOD 800000  		// Defined by user
 
+
 unsigned long Count;   		// number of times thread loops
 
 
@@ -52,7 +53,31 @@ void Producer(void){
 	BSP_Joystick_Input(&rawX, &rawY, &select);
 	
 	// Your Code Here
-	
+
+    // Calculate deltas based on raw ADC values and origin
+    deltaX = ((int16_t)rawX - (int16_t)origin[0]) / 512; // Adjust delta for joystick sensitivity
+    deltaY = ((int16_t)rawY - (int16_t)origin[1]) / 512;
+
+    // Update crosshair position based on deltas
+    newX = x + deltaX;
+    newY = y + deltaY;
+
+    // Ensure the crosshair stays within screen boundaries
+    if (newX < 0) newX = 0;
+    if (newX > 127) newX = 127;
+    if (newY < 0) newY = 0;
+    if (newY > 127) newY = 127;
+
+    // Update global crosshair position
+    x = newX;
+    y = newY;
+
+    // Prepare data for FIFO
+    data.x = x;
+    data.y = y;
+
+    // Push data into the FIFO
+    RxFifo_Put(data);
 #endif
 }
 
@@ -60,6 +85,23 @@ void Producer(void){
 void Consumer(void){
 	rxDataType data;
 	// Your Code Here
+	
+    // Check if there's new data in the FIFO
+    if (RxFifo_Get(&data)) {
+        // Erase the previous crosshair
+        BSP_LCD_DrawCrosshair(prevx, prevy, BGCOLOR);
+
+        // Draw the new crosshair
+        BSP_LCD_DrawCrosshair(data.x, data.y, LCD_RED);
+
+        // Display the X and Y positions at the bottom of the screen
+        BSP_LCD_Message(0, 11, 0, "X:", data.x); // Top screen, line 11
+        BSP_LCD_Message(0, 11, 10, "Y:", data.y); // Top screen, line 11 (shifted to column 10)
+
+        // Update the previous position for the next iteration
+        prevx = data.x;
+        prevy = data.y;
+    }
 }
 
 //******** Main *************** 

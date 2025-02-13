@@ -43,10 +43,10 @@ void InitTimer1A(unsigned long period, unsigned long priority) {
   SYSCTL_RCGCTIMER_R |= 0x02;
 	while((SYSCTL_RCGCTIMER_R & 0x02) == 0){} // allow time for clock to stabilize
 		
-	//TIMER1_CTL_R &= ; 														            // 1) disable timer1A during setup, please complete and uncomment this line
+	TIMER1_CTL_R &= ~TIMER_CTL_TAEN; 														            // 1) disable timer1A during setup, please complete and uncomment this line
   TIMER1_CFG_R = TIMER_CFG_32_BIT_TIMER;   										// 2) configure for 32-bit timer mode
   TIMER1_TAMR_R = TIMER_TAMR_TAMR_PERIOD; 										// 3) configure for periodic mode, default down-count settings
-	//TIMER1_TAILR_R = ; 																        // 4) reload value, please complete and uncomment this line       
+	TIMER1_TAILR_R = period - 1;  															        // 4) reload value, please complete and uncomment this line       
   TIMER1_ICR_R = TIMER_ICR_TATOCINT; 													// 5) clear timer1A timeout flag
   TIMER1_IMR_R |= TIMER_IMR_TATOIM; 													// 6) arm timeout interrupt			   
   NVIC_PRI5_R = (NVIC_PRI5_R & 0xFFFF00FF)|(priority << 13);	// 7) priority shifted to bits 15-13 for timer1A
@@ -73,6 +73,10 @@ void Timer1A_Handler(void){
 //         priority 0 is the highest, 5 is the lowest
 // Outputs: 1 if successful, 0 if this thread can not be added
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority) {
-  // Your code here
-	return 1; // Dummy return, replace with your code
+  if (PeriodicTask != 0) {             // Check if a periodic task is already running
+    return 0;                          // Return 0 if the thread cannot be added
+  }
+  PeriodicTask = task;                 // Assign the task to the global function pointer
+  InitTimer1A(period, priority);       // Initialize Timer1A with the specified period and priority
+  return 1;   
 }
