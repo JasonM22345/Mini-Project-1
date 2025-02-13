@@ -54,27 +54,34 @@ void Producer(void){
 	
 	// Your Code Here
 
-    // Calculate deltas based on raw ADC values and origin
-    deltaX = ((int16_t)rawX - (int16_t)origin[0]) / 512; // Adjust delta for joystick sensitivity
-    deltaY = ((int16_t)rawY - (int16_t)origin[1]) / 512;
+ // Calculate deltas based on raw ADC values and origin
+    deltaX = ((int32_t)rawX - (int32_t)origin[0]) / 512; // Adjust delta for joystick sensitivity
+    deltaY = -((int32_t)rawY - (int32_t)origin[1]) / 512; // Negate deltaY to fix inverted Y-axis
 
     // Update crosshair position based on deltas
-    newX = x + deltaX;
-    newY = y + deltaY;
+    newX += deltaX;
+    newY += deltaY;
 
-    // Ensure the crosshair stays within screen boundaries
+    // Clamp crosshair position to screen boundaries
     if (newX < 0) newX = 0;
     if (newX > 127) newX = 127;
     if (newY < 0) newY = 0;
     if (newY > 127) newY = 127;
 
-    // Update global crosshair position
-    x = newX;
-    y = newY;
+    // Update global crosshair position, cast back to int16_t
+    x = (int16_t)newX;
+    y = (int16_t)newY;
 
     // Prepare data for FIFO
     data.x = x;
     data.y = y;
+		
+		// Ensure data is clamped before pushing to FIFO
+    if (data.x < 0) data.x = 0;
+    if (data.x > 127) data.x = 127;
+    if (data.y < 0) data.y = 0;
+    if (data.y > 127) data.y = 127;
+		
 
     // Push data into the FIFO
     RxFifo_Put(data);
@@ -95,8 +102,8 @@ void Consumer(void){
         BSP_LCD_DrawCrosshair(data.x, data.y, LCD_RED);
 
         // Display the X and Y positions at the bottom of the screen
-        BSP_LCD_Message(0, 11, 0, "X:", data.x); // Top screen, line 11
-        BSP_LCD_Message(0, 11, 10, "Y:", data.y); // Top screen, line 11 (shifted to column 10)
+        BSP_LCD_Message(1, 0, 0, "X:", data.x); // Bottom bar (device 1)
+        BSP_LCD_Message(1, 0, 10, "Y:", data.y); // Bottom bar (shifted to column 10)
 
         // Update the previous position for the next iteration
         prevx = data.x;

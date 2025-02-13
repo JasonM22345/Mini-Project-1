@@ -1458,19 +1458,25 @@ void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int 
 //					color		specifies the color of the crosshair
 // outputs: none
 void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
-    // Ensure coordinates are within the bounds of the screen
-    if (x < 0 || x >= ST7735_TFTWIDTH || y < 0 || y >= ST7735_TFTHEIGHT) return;
-
-    // Ensure the crosshair stays within the top logical display (lines 0-11)
-    if (y / 10 > 11) return;
+    // Clamp the coordinates to ensure they stay within the screen bounds
+    if (x < 0) x = 0;
+    if (x >= ST7735_TFTWIDTH) x = ST7735_TFTWIDTH - 1;
+    if (y < 0) y = 0;
+    if (y >= ST7735_TFTHEIGHT) y = ST7735_TFTHEIGHT - 1;
 
     // Define the size of the crosshair (half the length of each line)
     int16_t crossSize = 5;
 
-    // Draw the horizontal line of the crosshair, centered at (x, y)
-    BSP_LCD_DrawFastHLine(x - crossSize, y, crossSize * 2 + 1, color);
+    // Adjust crosshair to ensure it doesn't extend out of the screen
+    int16_t leftX = (x - crossSize < 0) ? 0 : x - crossSize;
+    int16_t rightX = (x + crossSize >= ST7735_TFTWIDTH) ? ST7735_TFTWIDTH - 1 : x + crossSize;
+    int16_t topY = (y - crossSize < 0) ? 0 : y - crossSize;
+    int16_t bottomY = (y + crossSize >= ST7735_TFTHEIGHT) ? ST7735_TFTHEIGHT - 1 : y + crossSize;
 
-    // Draw the vertical line of the crosshair, centered at (x, y)
-    BSP_LCD_DrawFastVLine(x, y - crossSize, crossSize * 2 + 1, color);
+    // Draw the horizontal line of the crosshair, clamped within bounds
+    BSP_LCD_DrawFastHLine(leftX, y, rightX - leftX + 1, color);
+
+    // Draw the vertical line of the crosshair, clamped within bounds
+    BSP_LCD_DrawFastVLine(x, topY, bottomY - topY + 1, color);
 }
 
