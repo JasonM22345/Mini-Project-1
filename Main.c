@@ -21,8 +21,10 @@ uint8_t select;  // joystick push
 
 //---------------------User debugging-----------------------
 
-#define TEST_TIMER 0		// Change to 1 if testing the timer
-#define TEST_PERIOD 800000  // Defined by user
+#define TEST_TIMER 1		// Change to 1 if testing the timer
+#define TEST_PERIOD 4000000  // 20 Hz timer  testing
+
+//#define TEST_PERIOD 800000  // Defined by user
 #define PERIOD 800000  		// Defined by user
 
 
