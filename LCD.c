@@ -1438,8 +1438,8 @@ int16_t crosshairAreaHeight = 10; // Reserve 10 pixels at the bottom for text
 //  				value		16-bit number in unsigned decimal format
 // outputs: none
 void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int value){
-    if (device == 0) { // Top screen (rows 0 to 11)
-        if (line > 11 || col > 20) return; // Ensure valid line/col for top screen
+    if (device == 0) { 
+        if (line > 11 || col > 20) return;
 
         // Seting cursor and draw the string
         BSP_LCD_SetCursor(col, line);
@@ -1450,8 +1450,8 @@ void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int 
 
         // Outputting the value using BSP_LCD_OutUDec
         BSP_LCD_OutUDec(value, ST7735_WHITE);
-    } else if (device == 1) { // Bottom bar (row 12 only)
-        if (line != 0 || col > 20) return; // Bottom bar only allows line 0
+    } else if (device == 1) { 
+        if (line != 0 || col > 20) return; 
 
         // Setting cursor and draw the string
         BSP_LCD_SetCursor(col, 12);
@@ -1479,13 +1479,13 @@ void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
     if (x - crossSize < 0+4) {
         x = crossSize; // Ensure the left part of the crosshair is within bounds
     } else if (x + crossSize >= ST7735_TFTWIDTH) {
-        x = ST7735_TFTWIDTH - crossSize - 1; // Ensure the right part of the crosshair is within bounds
+        x = ST7735_TFTWIDTH - crossSize - 1; // Ensuring the right part of the crosshair is within bounds
     }
 
     if (y - crossSize < 0+4) {
         y = crossSize; // Ensure the top part of the crosshair is within bounds
     } else if (y + crossSize >= ST7735_TFTHEIGHT) {
-        y = ST7735_TFTHEIGHT - crossSize - 1; // Ensure the bottom part of the crosshair is within bounds
+        y = ST7735_TFTHEIGHT - crossSize - 1; // Ensuring the bottom part of the crosshair is within bounds
     }
 
     // Calculating the bounds for the horizontal and vertical lines of the crosshair

@@ -53,38 +53,37 @@ void Producer(void){
 	BSP_Joystick_Input(&rawX, &rawY, &select);
 	
 	// Your Code Here
-	
-	// Reserve the last row for text
-   int16_t crosshairAreaHeight = 10; // Reserve 10 pixels at the bottom for text
+
+	int16_t crosshairAreaHeight = 10;
 
 
-// Calculate deltas based on raw ADC values and origin
-    deltaX = ((int16_t)rawX - (int16_t)origin[0]) / 512;  // Adjust delta for joystick sensitivity
-    deltaY = -((int16_t)rawY - (int16_t)origin[1]) / 512; // Negate deltaY to fix inverted Y-axis
+	// Calculating deltas based on raw ADC values and origin
+	deltaX = ((int16_t)rawX - (int16_t)origin[0]) / 512;  
+	deltaY = -((int16_t)rawY - (int16_t)origin[1]) / 512; // Negated deltaY to fix inverted Y-axis
 
-    // Update crosshair position based on deltas
-    newX += deltaX;
-    newY += deltaY;
+	// Updating crosshair position based on deltas
+	newX += deltaX;
+	newY += deltaY;
 
-    // Define the size of the crosshair (half the length of each line)
-    int16_t crossSize = 5;
+	// Defining the size of the crosshair (half the length of each line)
+	int16_t crossSize = 5;
 
-    // Clamp crosshair position to ensure it stays within valid range [0, 127]
-    if (newX < crossSize) newX = crossSize;
-    if (newX > 127 - crossSize) newX = 127 - crossSize;
-    if (newY < crossSize) newY = crossSize;
-    if (newY > 127 - crossSize - crosshairAreaHeight) newY = 127 - crossSize - crosshairAreaHeight;
+	// Clamping crosshair position to ensure it stays within valid range [0, 127]
+	if (newX < crossSize) newX = crossSize;
+	if (newX > 127 - crossSize) newX = 127 - crossSize;
+	if (newY < crossSize) newY = crossSize;
+	if (newY > 127 - crossSize - crosshairAreaHeight) newY = 127 - crossSize - crosshairAreaHeight;
 
-    // Update global crosshair position
-    x = (int16_t)newX;
-    y = (int16_t)newY;
+	// Updating global crosshair position
+	x = (uint32_t)newX;
+	y = (uint32_t)newY;
 
-    // Prepare data for FIFO
-    data.x = x;
-    data.y = y;
+	// Preparing data for FIFO
+	data.x = x;
+	data.y = y;
 
-    // Push data into the FIFO
-    RxFifo_Put(data);
+	// Pushing data into the FIFO
+	RxFifo_Put(data);
 #endif
 }
 
@@ -92,32 +91,20 @@ void Producer(void){
 void Consumer(void){
 	rxDataType data;
 
-    // Check if there's new data in the FIFO
-    if (RxFifo_Get(&data)) {
-        // Clamp the data to ensure it's within bounds
-        if (data.x < 0) data.x = 0;
-        if (data.x > 127) data.x = 127;
-        if (data.y < 0) data.y = 0;
-        if (data.y > 127) data.y = 127;
-			
-		
+    // Checking if there's new data in the FIFO
+    if (RxFifo_Get(&data)) {		
 
-        // Erase the previous crosshair
+        // Erasing the previous crosshair
         BSP_LCD_DrawCrosshair(prevx, prevy, BGCOLOR);
 
-        // Draw the new crosshair
+        // Drawing the new crosshair
         BSP_LCD_DrawCrosshair(data.x, data.y, LCD_RED);
 
-			  data.x = (uint32_t)data.x;
-			  data.y = (uint32_t)data.y;
-        // Display the X and Y positions at the bottom of the screen
-        BSP_LCD_Message(1, 0, 4, "X:", data.x); // Bottom bar (device 1)
-        BSP_LCD_Message(1, 0, 12, "Y:", data.y); // Bottom bar (shifted to column 10)
-			   
-			  //BSP_LCD_OutUDec4(data.x, 0xFFFF);
-			  //BSP_LCD_OutUDec4(data.x, 0xFFFF);
+        // Displaying the X and Y positions
+        BSP_LCD_Message(1, 0, 4, "X:", data.x); 
+        BSP_LCD_Message(1, 0, 12, "Y:", data.y); 
 
-        // Update the previous position for the next iteration
+        // Updating the previous position for the next iteration
         prevx = data.x;
         prevy = data.y;
     }

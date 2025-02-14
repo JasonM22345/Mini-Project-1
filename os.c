@@ -73,10 +73,10 @@ void Timer1A_Handler(void){
 //         priority 0 is the highest, 5 is the lowest
 // Outputs: 1 if successful, 0 if this thread can not be added
 int OS_AddPeriodicThread(void(*task)(void), unsigned long period, unsigned long priority) {
-  if (PeriodicTask != 0) {             // Check if a periodic task is already running
+  if (PeriodicTask != 0) {             // Checking if a periodic task is already running
     return 0;                          // Return 0 if the thread cannot be added
   }
   PeriodicTask = task;                 // Assign the task to the global function pointer
-  InitTimer1A(period, priority);       // Initialize Timer1A with the specified period and priority
+  InitTimer1A(period, priority);       // Initializing Timer1A with the specified period and priority
   return 1;   
 }
