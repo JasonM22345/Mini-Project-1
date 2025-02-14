@@ -53,35 +53,35 @@ void Producer(void){
 	BSP_Joystick_Input(&rawX, &rawY, &select);
 	
 	// Your Code Here
+	
+	// Reserve the last row for text
+   int16_t crosshairAreaHeight = 10; // Reserve 10 pixels at the bottom for text
 
- // Calculate deltas based on raw ADC values and origin
-    deltaX = ((int32_t)rawX - (int32_t)origin[0]) / 512; // Adjust delta for joystick sensitivity
+
+// Calculate deltas based on raw ADC values and origin
+    deltaX = ((int32_t)rawX - (int32_t)origin[0]) / 512;  // Adjust delta for joystick sensitivity
     deltaY = -((int32_t)rawY - (int32_t)origin[1]) / 512; // Negate deltaY to fix inverted Y-axis
 
     // Update crosshair position based on deltas
     newX += deltaX;
     newY += deltaY;
 
-    // Clamp crosshair position to screen boundaries
-    if (newX < 0) newX = 0;
-    if (newX > 127) newX = 127;
-    if (newY < 0) newY = 0;
-    if (newY > 127) newY = 127;
+    // Define the size of the crosshair (half the length of each line)
+    int32_t crossSize = 5;
 
-    // Update global crosshair position, cast back to int16_t
-    x = (int16_t)newX;
-    y = (int16_t)newY;
+    // Clamp crosshair position to ensure it stays within valid range [0, 127]
+    if (newX < crossSize) newX = crossSize;
+    if (newX > 127 - crossSize) newX = 127 - crossSize;
+    if (newY < crossSize) newY = crossSize;
+    if (newY > 127 - crossSize - crosshairAreaHeight) newY = 127 - crossSize - crosshairAreaHeight;
+
+    // Update global crosshair position
+    x = (int32_t)newX;
+    y = (int32_t)newY;
 
     // Prepare data for FIFO
     data.x = x;
     data.y = y;
-		
-		// Ensure data is clamped before pushing to FIFO
-    if (data.x < 0) data.x = 0;
-    if (data.x > 127) data.x = 127;
-    if (data.y < 0) data.y = 0;
-    if (data.y > 127) data.y = 127;
-		
 
     // Push data into the FIFO
     RxFifo_Put(data);
@@ -91,10 +91,19 @@ void Producer(void){
 //******** Consumer *************** 
 void Consumer(void){
 	rxDataType data;
-	// Your Code Here
-	
+
     // Check if there's new data in the FIFO
     if (RxFifo_Get(&data)) {
+        // Clamp the data to ensure it's within bounds
+        if (data.x < 0) data.x = 0;
+        if (data.x > 127) data.x = 127;
+        if (data.y < 0) data.y = 0;
+        if (data.y > 127) data.y = 127;
+			
+			  #include <stdio.h>
+
+			  printf("x: ", data.x, " y: ", data.y);
+
         // Erase the previous crosshair
         BSP_LCD_DrawCrosshair(prevx, prevy, BGCOLOR);
 
@@ -102,8 +111,8 @@ void Consumer(void){
         BSP_LCD_DrawCrosshair(data.x, data.y, LCD_RED);
 
         // Display the X and Y positions at the bottom of the screen
-        BSP_LCD_Message(1, 0, 0, "X:", data.x); // Bottom bar (device 1)
-        BSP_LCD_Message(1, 0, 10, "Y:", data.y); // Bottom bar (shifted to column 10)
+        BSP_LCD_Message(1, 0, 6, "X:", data.x); // Bottom bar (device 1)
+        BSP_LCD_Message(1, 0, 12, "Y:", data.y); // Bottom bar (shifted to column 10)
 
         // Update the previous position for the next iteration
         prevx = data.x;

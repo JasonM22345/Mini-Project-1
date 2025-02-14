@@ -1424,6 +1424,10 @@ void BSP_LCD_PlotIncrement(void){
 
 /** Mini Project 1 Code **/
 
+// Reserve the last row for text
+int16_t crosshairAreaHeight = 10; // Reserve 10 pixels at the bottom for text
+
+
 //------------BSP_LCD_Message-------------------
 // Divide the LCD into two logical partitions and provide
 // an interface to output a string
@@ -1458,25 +1462,32 @@ void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int 
 //					color		specifies the color of the crosshair
 // outputs: none
 void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
-    // Clamp the coordinates to ensure they stay within the screen bounds
-    if (x < 0) x = 0;
-    if (x >= ST7735_TFTWIDTH) x = ST7735_TFTWIDTH - 1;
-    if (y < 0) y = 0;
-    if (y >= ST7735_TFTHEIGHT) y = ST7735_TFTHEIGHT - 1;
-
-    // Define the size of the crosshair (half the length of each line)
+// Define the size of the crosshair (half the length of each line)
     int16_t crossSize = 5;
 
-    // Adjust crosshair to ensure it doesn't extend out of the screen
-    int16_t leftX = (x - crossSize < 0) ? 0 : x - crossSize;
-    int16_t rightX = (x + crossSize >= ST7735_TFTWIDTH) ? ST7735_TFTWIDTH - 1 : x + crossSize;
-    int16_t topY = (y - crossSize < 0) ? 0 : y - crossSize;
-    int16_t bottomY = (y + crossSize >= ST7735_TFTHEIGHT) ? ST7735_TFTHEIGHT - 1 : y + crossSize;
+    // Adjust coordinates to ensure the entire crosshair is within bounds
+    if (x - crossSize < 0+4) {
+        x = crossSize; // Ensure the left part of the crosshair is within bounds
+    } else if (x + crossSize >= ST7735_TFTWIDTH) {
+        x = ST7735_TFTWIDTH - crossSize - 1; // Ensure the right part of the crosshair is within bounds
+    }
 
-    // Draw the horizontal line of the crosshair, clamped within bounds
+    if (y - crossSize < 0+4) {
+        y = crossSize; // Ensure the top part of the crosshair is within bounds
+    } else if (y + crossSize >= ST7735_TFTHEIGHT) {
+        y = ST7735_TFTHEIGHT - crossSize - 1; // Ensure the bottom part of the crosshair is within bounds
+    }
+
+    // Calculate the bounds for the horizontal and vertical lines of the crosshair
+    int16_t leftX = x - crossSize; // Start of the horizontal line
+    int16_t rightX = x + crossSize; // End of the horizontal line
+    int16_t topY = y - crossSize; // Start of the vertical line
+    int16_t bottomY = y + crossSize; // End of the vertical line
+
+    // Draw the horizontal line of the crosshair
     BSP_LCD_DrawFastHLine(leftX, y, rightX - leftX + 1, color);
 
-    // Draw the vertical line of the crosshair, clamped within bounds
+    // Draw the vertical line of the crosshair
     BSP_LCD_DrawFastVLine(x, topY, bottomY - topY + 1, color);
 }
 
