@@ -1440,18 +1440,28 @@ int16_t crosshairAreaHeight = 10; // Reserve 10 pixels at the bottom for text
 void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int value){
     if (device == 0) { // Top screen (rows 0 to 11)
         if (line > 11 || col > 20) return; // Ensure valid line/col for top screen
+
+        // Seting cursor and draw the string
         BSP_LCD_SetCursor(col, line);
-        BSP_LCD_DrawString(col, line, string, ST7735_WHITE); // Draw the string
-        char valueString[12];
-        sprintf(valueString, "%u", value); // Convert value to string (unsigned)
-        BSP_LCD_DrawString(col + strlen(string), line, valueString, ST7735_WHITE);
+        BSP_LCD_DrawString(col, line, string, ST7735_WHITE);
+
+        // Moving the cursor to where the value should appear
+        BSP_LCD_SetCursor(col + strlen(string), line);
+
+        // Outputting the value using BSP_LCD_OutUDec
+        BSP_LCD_OutUDec(value, ST7735_WHITE);
     } else if (device == 1) { // Bottom bar (row 12 only)
         if (line != 0 || col > 20) return; // Bottom bar only allows line 0
-        BSP_LCD_SetCursor(col, 12); // Always draw on row 12 for bottom bar
-        BSP_LCD_DrawString(col, 12, string, ST7735_WHITE); // Draw the string
-        char valueString[12];
-        sprintf(valueString, "%u", value); // Convert value to string (unsigned)
-        BSP_LCD_DrawString(col + strlen(string), 12, valueString, ST7735_WHITE);
+
+        // Setting cursor and draw the string
+        BSP_LCD_SetCursor(col, 12);
+        BSP_LCD_DrawString(col, 12, string, ST7735_WHITE);
+
+        // Moving the cursor to where the value should appear
+        BSP_LCD_SetCursor(col + strlen(string), 12);
+
+        // Outputting the value using BSP_LCD_OutUDec
+        BSP_LCD_OutUDec4(value, ST7735_WHITE);
     }
 }
 
@@ -1462,10 +1472,10 @@ void BSP_LCD_Message (int device, int line, int col, char *string, unsigned int 
 //					color		specifies the color of the crosshair
 // outputs: none
 void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
-// Define the size of the crosshair (half the length of each line)
+    // The size of the crosshair (half the length of each line)
     int16_t crossSize = 5;
 
-    // Adjust coordinates to ensure the entire crosshair is within bounds
+    // Adjusting coordinates to ensure the entire crosshair is within bounds
     if (x - crossSize < 0+4) {
         x = crossSize; // Ensure the left part of the crosshair is within bounds
     } else if (x + crossSize >= ST7735_TFTWIDTH) {
@@ -1478,16 +1488,16 @@ void BSP_LCD_DrawCrosshair(int16_t x, int16_t y, int16_t color) {
         y = ST7735_TFTHEIGHT - crossSize - 1; // Ensure the bottom part of the crosshair is within bounds
     }
 
-    // Calculate the bounds for the horizontal and vertical lines of the crosshair
+    // Calculating the bounds for the horizontal and vertical lines of the crosshair
     int16_t leftX = x - crossSize; // Start of the horizontal line
     int16_t rightX = x + crossSize; // End of the horizontal line
     int16_t topY = y - crossSize; // Start of the vertical line
     int16_t bottomY = y + crossSize; // End of the vertical line
 
-    // Draw the horizontal line of the crosshair
+    // Drawing the horizontal line of the crosshair
     BSP_LCD_DrawFastHLine(leftX, y, rightX - leftX + 1, color);
 
-    // Draw the vertical line of the crosshair
+    // Drawing the vertical line of the crosshair
     BSP_LCD_DrawFastVLine(x, topY, bottomY - topY + 1, color);
 }
 

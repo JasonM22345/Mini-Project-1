@@ -59,15 +59,15 @@ void Producer(void){
 
 
 // Calculate deltas based on raw ADC values and origin
-    deltaX = ((int32_t)rawX - (int32_t)origin[0]) / 512;  // Adjust delta for joystick sensitivity
-    deltaY = -((int32_t)rawY - (int32_t)origin[1]) / 512; // Negate deltaY to fix inverted Y-axis
+    deltaX = ((int16_t)rawX - (int16_t)origin[0]) / 512;  // Adjust delta for joystick sensitivity
+    deltaY = -((int16_t)rawY - (int16_t)origin[1]) / 512; // Negate deltaY to fix inverted Y-axis
 
     // Update crosshair position based on deltas
     newX += deltaX;
     newY += deltaY;
 
     // Define the size of the crosshair (half the length of each line)
-    int32_t crossSize = 5;
+    int16_t crossSize = 5;
 
     // Clamp crosshair position to ensure it stays within valid range [0, 127]
     if (newX < crossSize) newX = crossSize;
@@ -76,8 +76,8 @@ void Producer(void){
     if (newY > 127 - crossSize - crosshairAreaHeight) newY = 127 - crossSize - crosshairAreaHeight;
 
     // Update global crosshair position
-    x = (int32_t)newX;
-    y = (int32_t)newY;
+    x = (int16_t)newX;
+    y = (int16_t)newY;
 
     // Prepare data for FIFO
     data.x = x;
@@ -100,9 +100,7 @@ void Consumer(void){
         if (data.y < 0) data.y = 0;
         if (data.y > 127) data.y = 127;
 			
-			  #include <stdio.h>
-
-			  printf("x: ", data.x, " y: ", data.y);
+		
 
         // Erase the previous crosshair
         BSP_LCD_DrawCrosshair(prevx, prevy, BGCOLOR);
@@ -110,9 +108,14 @@ void Consumer(void){
         // Draw the new crosshair
         BSP_LCD_DrawCrosshair(data.x, data.y, LCD_RED);
 
+			  data.x = (uint32_t)data.x;
+			  data.y = (uint32_t)data.y;
         // Display the X and Y positions at the bottom of the screen
-        BSP_LCD_Message(1, 0, 6, "X:", data.x); // Bottom bar (device 1)
+        BSP_LCD_Message(1, 0, 4, "X:", data.x); // Bottom bar (device 1)
         BSP_LCD_Message(1, 0, 12, "Y:", data.y); // Bottom bar (shifted to column 10)
+			   
+			  //BSP_LCD_OutUDec4(data.x, 0xFFFF);
+			  //BSP_LCD_OutUDec4(data.x, 0xFFFF);
 
         // Update the previous position for the next iteration
         prevx = data.x;
